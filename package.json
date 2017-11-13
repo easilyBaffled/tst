@@ -2,8 +2,8 @@
   "name": "lazyj",
   "version": "0.0.3",
   "description": "A toolbox to simplify Jest unit tests even more",
-  "module": "dist/bundle.js",
-  "main": "src/index.js",
+  "main": "dist/bundle.js",
+  "module": "src/index.js",
   "scripts": {
     "test": "jest --config config.json --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
     "test-built": "NODE_ENV=build jest --config config.json",
