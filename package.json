@@ -1,6 +1,6 @@
 {
   "name": "lazyj",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A toolbox to simplify Jest unit tests even more",
   "module": "dist/bundle.js",
   "main": "src/index.js",
