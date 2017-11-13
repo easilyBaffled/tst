@@ -1,0 +1,21 @@
+{
+  "name": "tst",
+  "version": "0.0.1",
+  "description": "A toolbox to simplify Jest unit tests even more",
+  "module": "dist/bundle.js",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest --config config.json --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js",
+    "test-built": "NODE_ENV=build jest --config config.json",
+    "build": "webpack; npm run test-built",
+    "deploy": "npm run build && git commit . -m Build && npm version patch && npm publish",
+    "updates": "ncu"
+  },
+  "author": "Danny Michaelis, easilyBaffled",
+  "license": "ISC",
+  "devDependencies": {
+    "coveralls": "^3.0.0",
+    "jest": "^21.2.1",
+    "webpack": "^3.8.1"
+  }
+}

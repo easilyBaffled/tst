@@ -1,0 +1,7 @@
+{
+  "moduleFileExtensions": ["js"],
+  "collectCoverageFrom": [
+    "src/*.js",
+    "!src/index.js"
+  ]
+}
