@@ -12,6 +12,10 @@
     "updates": "ncu"
   },
   "author": "Danny Michaelis, easilyBaffled",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/easilyBaffled/tst.git"
+  },
   "license": "ISC",
   "devDependencies": {
     "coveralls": "^3.0.0",
