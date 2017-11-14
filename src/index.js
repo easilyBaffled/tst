@@ -70,6 +70,8 @@ export default function( defaultValue = null ) {
     let value = [];
 
     function test( val = typeof defaultValue === 'function' ? defaultValue() : defaultValue ) {
+        if( typeof defaultValue === 'function' ) val = defaultValue( val )
+
         const setup = expect( val );
 
         value.push( val );
@@ -79,9 +81,9 @@ export default function( defaultValue = null ) {
 
             evaluationFunc =
                 evaluationFunc === '->'        ? isPrimitive(val) ? 'toBe' : 'toEqual'
-                    : evaluationFunc === '!->'       ? isPrimitive(val) ? 'not.toBe' : 'not.toEqual'
-                    : evaluationFunc in testNameDict ? testNameDict[ evaluationFunc ]
-                        : evaluationFunc;
+                : evaluationFunc === '!->'       ? isPrimitive(val) ? 'not.toBe' : 'not.toEqual'
+                : evaluationFunc in testNameDict ? testNameDict[ evaluationFunc ]
+                : evaluationFunc;
 
             evaluationFunc.split('.')
                 .reduce( ( t, func ) => t[ func ], setup )( parsePrimative( expectationValue ) );

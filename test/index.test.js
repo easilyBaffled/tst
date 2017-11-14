@@ -1,6 +1,6 @@
 import * as tst from '../src';
 import * as built_tst from '../dist/bundle.js';
-const { default:  _ex, testGroup } = process.env.NODE_ENV === "build" ? built_tst: tst
+const { default:  _ex, testGroup } = process.env.NODE_ENV === "build" ? built_tst: tst;
 
 testGroup( 'susinct', {
     'basic usage': () => {
@@ -16,8 +16,9 @@ testGroup( 'susinct', {
             (1)` !== "1"`
             (1)` not.toEqual "1"`
 
-        let x = true
-        let obj = { a: 1 }
+        let x = true;
+        let obj = { a: 1 };
+
         _ex()
             ( x )` -> true`
             ( x )` -> ${x}`
@@ -64,6 +65,16 @@ testGroup( 'susinct', {
             ()` -> 2`
         .trigger( () => obj.add() )
             ()` -> 3`
+
+        _ex( arg => arg + '!' )
+            ( 2 )` -> "2!"`
+            ( 3 )` -> "3!"`
+            ( 'a' )` -> "a!"`
+            ()` -> "undefined!!"`
+            (null)` -> "null!"`
+        .reassign( arg => arg + arg )
+            ( 2 )` -> 4`
+            ( "2" )` -> "22"`
     },
     'vestigial `value` attribute that might be useful': () => {
     // It just collects the input values right now. But it could collect other aspects of the tests
@@ -78,7 +89,5 @@ testGroup( 'susinct', {
 
         _ex()
             ( valueString )` -> [ 1, 2 ]`;
-
-
     }
 } );
