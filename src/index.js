@@ -24,6 +24,16 @@ export function testGroup( topic, tests ) {
             delete tests.beforeEach;
         }
 
+        if( tests.afterAll ) {
+            afterAll( tests.afterAll );
+            delete tests.afterAll;
+        }
+        if( tests.afterEach ) {
+            afterEach( tests.afterEach );
+            delete tests.afterEach;
+        }
+        
+
         const onlyRunList = Object.keys( tests ).some( str => str.startsWith( '--' ) ) ?
             Object.entries( tests ).filter( ( [ name, func ] ) => name.startsWith( '--' ) )
             : Object.entries( tests );
