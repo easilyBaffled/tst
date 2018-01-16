@@ -1,10 +1,17 @@
+let suiteFunc = 'describe';
+let testFunc = 'test';
+
+export function config( { suite, test } ) {
+    suiteFunc = suite;
+    testFunc = test;
+}
 /**
  * An adapter for Jest's `test` function so it can easily slot in with Object.entries
  * @param {string} description - description text for this test
  * @param {function} func - a function to evaluate a given situation
  */
 export function entriesTest( [ description, func ] ) {
-    test( description, func );
+    global[ testFunc ]( description, func );
 }
 
 /**
@@ -14,7 +21,7 @@ export function entriesTest( [ description, func ] ) {
  */
 export function testGroup( topic, tests ) {
     const topicName = typeof topic === 'string'? topic : topic.name;
-    describe( topicName, () => {
+    global[ suiteFunc ]( topicName, () => {
         if( tests.beforeAll ) {
             beforeAll( tests.beforeAll );
             delete tests.beforeAll;

@@ -79,17 +79,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* WEBPACK VAR INJECTION */(function(global) {/* harmony export (immutable) */ __webpack_exports__["config"] = config;
 /* harmony export (immutable) */ __webpack_exports__["entriesTest"] = entriesTest;
 /* harmony export (immutable) */ __webpack_exports__["testGroup"] = testGroup;
 /* harmony export (immutable) */ __webpack_exports__["dom"] = dom;
 /* harmony export (immutable) */ __webpack_exports__["repeat"] = repeat;
+let suiteFunc = 'describe';
+let testFunc = 'test';
+
+function config( { suite, test } ) {
+    suiteFunc = suite;
+    testFunc = test;
+}
 /**
  * An adapter for Jest's `test` function so it can easily slot in with Object.entries
  * @param {string} description - description text for this test
  * @param {function} func - a function to evaluate a given situation
  */
 function entriesTest( [ description, func ] ) {
-    test( description, func );
+    global[ testFunc ]( description, func );
 }
 
 /**
@@ -99,7 +107,7 @@ function entriesTest( [ description, func ] ) {
  */
 function testGroup( topic, tests ) {
     const topicName = typeof topic === 'string'? topic : topic.name;
-    describe( topicName, () => {
+    global[ suiteFunc ]( topicName, () => {
         if( tests.beforeAll ) {
             beforeAll( tests.beforeAll );
             delete tests.beforeAll;
@@ -214,6 +222,34 @@ const testNameDict = {
 
     return test;
 });
+
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(1)))
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
 
 
 /***/ })
