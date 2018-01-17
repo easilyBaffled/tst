@@ -22,29 +22,19 @@ export function entriesTest( [ description, func ] ) {
 export function testGroup( topic, tests ) {
     const topicName = typeof topic === 'string'? topic : topic.name;
     global[ suiteFunc ]( topicName, () => {
-        if( tests.beforeAll ) {
-            beforeAll( tests.beforeAll );
-            delete tests.beforeAll;
-        }
-        if( tests.beforeEach ) {
-            beforeEach( tests.beforeEach );
-            delete tests.beforeEach;
-        }
+        let clone = Object.assign( tests )
 
-        if( tests.afterAll ) {
-            afterAll( tests.afterAll );
-            delete tests.afterAll;
-        }
-        if( tests.afterEach ) {
-            afterEach( tests.afterEach );
-            delete tests.afterEach;
-        }
-        
+        Object.keys( clone )
+            .filter( key => /^(before|after)[^ ]*$/.test( key ) )
+            .forEach( key => {
+                global[ key ]( clone[ key ] );
+                delete clone[ key ]
+            } );
 
-        const onlyRunList = Object.keys( tests ).some( str => str.startsWith( '--' ) ) ?
-            Object.entries( tests ).filter( ( [ name, func ] ) => name.startsWith( '--' ) )
-            : Object.entries( tests );
 
+        const onlyRunList = Object.keys( clone ).some( str => str.startsWith( '--' ) ) ?
+            Object.entries( clone ).filter( ( [ name, func ] ) => name.startsWith( '--' ) )
+            : Object.entries( clone );
         onlyRunList.forEach( entriesTest );
     } )
 }
