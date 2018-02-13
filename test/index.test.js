@@ -1,93 +1,63 @@
 import * as tst from '../src';
 import * as built_tst from '../dist/bundle.js';
-const { default:  _ex, testGroup } = process.env.NODE_ENV === "build" ? built_tst: tst;
+const { testGroup, testWrap } = process.env.NODE_ENV === "build" ? built_tst : tst;
 
-testGroup( 'susinct', {
-    'basic usage': () => {
-        let value = 1;
-        _ex()
-            (1)` toEqual 1`
-            (1)` toBe 1`
-            (1)` === 1`
-            (1)` == 1`
-            (1)` -> 1`
-            (1)` -> ${value}`
-            (1)` !-> 2`
-            (1)` !== "1"`
-            (1)` not.toEqual "1"`
+const
+    identity = ( val = 1 ) => val,
+    err = ( message = '' )  => { throw Error( message ) };
 
-        let x = true;
-        let obj = { a: 1 };
+testGroup( 'testGroup works with objects', {
+    'with expect': () =>
+        expect( identity() ).toEqual( 1 ),
 
-        _ex()
-            ( x )` -> true`
-            ( x )` -> ${x}`
-            ( x )` !-> false`
-            ( obj )` -> ${new Object(obj)} `
-            ( obj )` -> { "a": 1 }`
-            ( obj )` !-> ${ { a: 2 } }`
-            ( () => { throw Error() } )` toThrowError`
-    },
-    'default values': () => {
-        let value = 1;
-        _ex( 1 )
-        ()` toEqual 1`
-        ()` === 1`
-        ()` -> 1`
-        ()` -> ${value}`
-        ()` !-> 2`
-        ()` !== "1"`
-            .reassign( 2 )
-            ()` -> 2`
-        ()` !-> 1`
+    'with wrapped func with the normal api': () =>
+        testWrap( identity )().toEqual( 1 ),
 
-    },
-    'functions get called for each test': () => {
-        _ex( () => 1 )
-            ()` -> 1`
-        .reassign( () => 2 )
-            ()` -> 2`
-    },
-    'trigger functions without breaking from the group': () => {
-        const obj = {
-            val: 1,
-            add: function() {
-                this.val = this.val + 1;
-            }
-        }
+    'with wrapped func with the succinct': () =>
+        testWrap( identity )()` -> 1`,
 
-        _ex()
-            ( obj.val )` -> 1`
-        .trigger( () => obj.add() )
-            ( obj.val )` -> 2`
-
-        _ex( () => obj.val )
-            ()` -> 2`
-        .trigger( () => obj.add() )
-            ()` -> 3`
-
-        _ex( arg => arg + '!' )
-            ( 2 )` -> "2!"`
-            ( 3 )` -> "3!"`
-            ( 'a' )` -> "a!"`
-            ()` -> "undefined!!"`
-            (null)` -> "null!"`
-        .reassign( arg => arg + arg )
-            ( 2 )` -> 4`
-            ( "2" )` -> "22"`
-    },
-    'vestigial `value` attribute that might be useful': () => {
-    // It just collects the input values right now. But it could collect other aspects of the tests
-        _ex()
-            ( _ex().value )` -> []`;
-        expect( _ex().value ).toEqual( [] )
-
-        const valueString = _ex()
-                (1)` -> 1`
-                (2)` -> 2`
-            .value
-
-        _ex()
-            ( valueString )` -> [ 1, 2 ]`;
+    'thrown error': () => {
+        expect( err ).toThrow();
+        testWrap( err )()` toThrow `;
     }
 } );
+
+testGroup( identity, ident => ( {
+    'with expect': () =>
+        expect( identity() ).toEqual( 1 ),
+
+    'with wrapped func with the normal api': () => {
+        ident().toEqual( 1 );
+        ident( 2 ).toEqual( 2 );
+    },
+
+    'with wrapped func with the succinct': () => {
+        ident()` -> 1 `;
+        ident( 2 )` toEqual 2 `;
+        ident( 'abc' )` not.toEqual ${[ 'x', 'y', 'z' ].join()} `;
+    },
+    'thrown error': () => {
+        expect( err ).toThrow();
+        testWrap( err )()` toThrow `;
+    }
+} ) );
+
+testGroup( err, troubleMaker => ( {
+    'thrown error': () => {
+        expect( err ).toThrow();
+        troubleMaker().toThrow();
+        troubleMaker()` toThrow `;
+    }
+} ) );
+
+testGroup( testGroup, _testGroup => ( {
+    'is a function': () => {
+        expect( typeof testGroup );
+    },
+    'let\'s get a little nuts': () => {
+        _testGroup( 'inception', {
+            'braaww': () => _testGroup()` toThrow `
+        } )` -> undefined `;
+    }
+} ) );
+

@@ -22,7 +22,8 @@
         "describe": true,
         "it": true,
         "before": true,
-        "JSON": true
+        "JSON": true,
+        "expect": true
     },
     "rules": {
         "func-call-spacing": [ 2, "never" ],
