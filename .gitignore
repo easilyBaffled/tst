@@ -1,5 +1,6 @@
 .esm-cache
 /wallaby.config.js
+/dist
 
 # code coverage
 coverage
@@ -8,6 +9,7 @@ test-results.xml
 clover.xml
 
 # editor and that .tmp file
+/.idea
 .idea
 .tmp
 
