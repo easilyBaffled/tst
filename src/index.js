@@ -1,3 +1,4 @@
+// @flow
 /** ******************************************************************************************************************
  * @file Test Augmentation Library
  * @authors Danny Michaelis <daniel.michaelis@iongroup.com>,
@@ -7,7 +8,8 @@
 let suiteFunc = 'describe';
 let testFunc = 'test';
 
-const global = Function( 'return this' )(); // vs ( 1, eval )( 'this' ); what is the benefit of one over the other
+const global = ( ( () => {} ).constructor( 'return this' ) )();
+
 /**
  * Most testing libraries us a similar structure of
  * group( 'description', function() {
@@ -41,6 +43,12 @@ export function entriesTest( [ description, func ] )
 export function testGroup( topic, tests )
 {
     const topicName = typeof topic === 'string' ? topic : topic.name;
+
+    if ( typeof tests === 'function' )
+    {
+        tests = tests( testWrap( topic ) );
+    }
+
     global[ suiteFunc ]( topicName, () => {
         let clone = Object.assign( tests );
         // Handle all of the before and after hooks that are common to most test libraries
@@ -91,11 +99,19 @@ function isPrimitive( val )
 {
     return val === null || /^[sbn]/.test( typeof val );
 }
+
 function parsePrimitive( val )
 {
     if ( !val || !isPrimitive( val ) )
         return val;
-    return JSON.parse( val );
+    try
+    {
+        return JSON.parse( val );
+    }
+    catch ( e ) // If parse throws an error that means val is a proper string 'a' vs 'true' or '2', that's still a valid value
+    {
+        return val;
+    }
 }
 
 /**
@@ -143,6 +159,7 @@ export function testWrap( func )
     };
 
     return new Proxy( func, {
+        ...( process.env.NODE_ENV === "test" && { isProxy: 'testWrap' } ),
         apply( target, thisArg, args ) { // trap for a function call. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler/apply
             target.called.push( args );
             let expected;
@@ -156,7 +173,7 @@ export function testWrap( func )
                     throw e;
                 } );
             }
-
+console.log('target', target( ...args ) );
             return wrapExpresProxy( expected );
         }
     } );
@@ -174,9 +191,10 @@ export function testWrap( func )
  * @param _ex
  * @returns {*}
  */
-function wrapExpresProxy( _ex ) {
+export function wrapExpresProxy( _ex ) {
     const func = () => _ex;
     return new Proxy( func, {
+        ...( process.env.NODE_ENV === "test" && { isProxy: 'wrapExpresProxy' } ),
         get( _, name ) // Directly access the normal `expect` assertion API
         {
             return _ex[ name ];
@@ -224,3 +242,72 @@ function wrapExpresProxy( _ex ) {
         }
     } );
 }
+
+
+/*
+    function submitFetch( url, headers = {}, method = 'GET', body = {} )
+    {
+        url = baseUrl + url;
+        let combinedHeaders = Object.assign( defaultHeaders, headers );
+
+        const config = {
+                headers: combinedHeaders,
+                cache: method === 'GET' ? "default" : "no-cache", // This needs to be evaluated
+                method
+            };
+        if ( method !== 'GET' ) config.body = typeof body === "string" ? body : JSON.stringify( body );
+
+        const dummyData = generate_dummy_data( url, method, config );
+
+        if ( dummyData ) {
+            const
+                transformedData = data_transformer( url, method, dummyData ),
+                resData = transformedData || dummyData;
+
+            return Promise.resolve( resData );
+        }
+
+        return fetch( url, config )
+                .then( check_status )
+                .then( parse_resp_JSON )
+                .then( res => {
+                    const transformedData = data_transformer( url, method, res );
+                    return transformedData || res;
+                } );
+    }
+
+    #submitFetch( string! ): validJSON
+
+    $global.fetch = () => Promise.resolve()
+    $global.* = identity
+
+    /?id=(\d\d)/.gen() ->
+        $global.fetch` wasCalled `
+        $0` toBeTruthy `
+*/
+
+/*
+    #addr( number|string!, number|string! ): number
+    $1 > 0, $2 > 0 -> $0 > 0, $0 > $1, $0 > $2
+    $1 >= 0, $2 >= 0 -> [ $1, $2, 0 ].every( val => $0 >= val )
+    $1 < 0, $2 > 0 -> $0 < $2
+
+*/
+
+/*
+export default required( name = '' )=>
+{
+    // TODO: get the function name from the stack trace and use it in the messaging.
+    const err = new Error( name ? name.toString() + " is a required parameter" : "A parameter is required for this function." );
+    err.stack = err.stack.replace( /\n([^\n]+)/, '' ); // Remove the line referring to this file from the stack trace
+    throw err
+};
+
+#required( string ): thrown Error
+    $1 = [ /.*{0, 20}/.gen() * 8 ] ->
+        $thrown,
+        $thrown.stack.length < 2
+*/
+
+
+
