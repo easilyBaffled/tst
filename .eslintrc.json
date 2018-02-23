@@ -190,7 +190,8 @@
             2,
             {
                 "vars": "local",
-                "args": "after-used"
+                "args": "after-used",
+                "varsIgnorePattern": "_"
             }
         ],
         "no-useless-call": 2,

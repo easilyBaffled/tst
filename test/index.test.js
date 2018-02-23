@@ -22,25 +22,25 @@ const
 //     }
 // } );
 //
-// testGroup( identity, ident => ( {
-//     'with expect': () =>
-//         expect( identity() ).toEqual( 1 ),
-//
-//     'with wrapped func with the normal api': () => {
-//         ident().toEqual( 1 );
-//         ident( 2 ).toEqual( 2 );
-//     },
-//
-//     'with wrapped func with the succinct': () => {
-//         ident()` -> 1 `;
-//         ident( 2 )` toEqual 2 `;
-//         ident( 'abc' )` not.toEqual ${[ 'x', 'y', 'z' ].join()} `;
-//     },
-//     'thrown error': () => {
-//         expect( err ).toThrow();
-//         testWrap( err )()` toThrow `;
-//     }
-// } ) );
+testGroup( identity, ident => ( {
+    'with expect': () =>
+        expect( identity() ).toEqual( 1 ),
+
+    'with wrapped func with the normal api': () => {
+        ident().toEqual( 1 );
+        ident( 2 ).toEqual( 2 );
+    },
+
+    'with wrapped func with the succinct': () => {
+        ident()` -> 1 `;
+        ident( 2 )` toEqual 2 `;
+        ident( 'abc' )` not.toEqual ${[ 'x', 'y', 'z' ].join()} `;
+    },
+    'thrown error': () => {
+        expect( err ).toThrow();
+        testWrap( err )()` toThrow `;
+    }
+} ) );
 //
 // testGroup( err, troubleMaker => ( {
 //     'thrown error': () => {
@@ -49,18 +49,23 @@ const
 //         troubleMaker()` toThrow `;
 //     }
 // } ) );
-let x;
-const a = testGroup( testGroup, _testGroup => ( {
+
+testGroup( testGroup, _testGroup => ( {
     'is a function': () => {
         expect( typeof testGroup );
     },
     'let\'s get a little nuts': () => {
-        x = _testGroup( 'inception', {
-            'braaww': () => _testGroup()` toThrow `
-        } )` -> undefined `;
+        _testGroup( 'inception', { /* Can't run tests within tests */ } )` -> undefined `;
+    },
+    'interface': () => {
+        testWrap( typeof _testGroup )` -> 'function' `;
+        testWrap( _testGroup.isProxy )` toBeTruthy `;
+        testWrap( _testGroup.isProxy )` -> "testWrap" `;
+
+        testWrap( _testGroup().isProxy )` toBeTruthy `;
+        testWrap( _testGroup().isProxy )` -> "wrapExpresProxy" `;
     }
 } ) );
-console.log('a', a, x );
 
 // testGroup( wrapExpresProxy, _wrex => ( {
 //     'returns a proxy': () => {

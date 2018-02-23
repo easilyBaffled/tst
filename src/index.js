@@ -5,6 +5,8 @@
  * @date 13-Jan-2018
  *********************************************************************************************************************/
 
+import { simpleTypeAssert as assert, required as R } from './util';
+
 let suiteFunc = 'describe';
 let testFunc = 'test';
 
@@ -37,17 +39,20 @@ export function entriesTest( [ description, func ] )
 
 /**
  * A short cut for the describe and test just to save some repetitive characters
- * @param {string} topic - description text for this group of tests
+ * @param {string|function} topic - description text for this group of tests
  * @param {object} tests - configured Jest tests where each entry's key:value is description string:test code
  */
-export function testGroup( topic, tests )
+export function testGroup( topic = R( 'topic' ), tests = R( 'tests' ) )
 {
-    const topicName = typeof topic === 'string' ? topic : topic.name;
+    assert( topic, 'string|function', testGroup );
+    assert( tests, 'object|function', testGroup );
+    if ( !global || !global[ suiteFunc ] || !typeof global[ suiteFunc ] === 'function' )
+        throw new Error( `${suiteFunc} is not available on the global scope or is not a function` );
+
+    const topicName = topic.name || topic;
 
     if ( typeof tests === 'function' )
-    {
         tests = tests( testWrap( topic ) );
-    }
 
     global[ suiteFunc ]( topicName, () => {
         let clone = Object.assign( tests );
@@ -58,7 +63,6 @@ export function testGroup( topic, tests )
                 global[ key ]( clone[ key ] );
                 delete clone[ key ];
             } );
-
 
         const onlyRunList = Object.keys( clone ).some( str => str.startsWith( '--' ) )
             ? Object.keys( clone ).filter( name => name.startsWith( '--' ) )
@@ -104,12 +108,16 @@ function parsePrimitive( val )
 {
     if ( !val || !isPrimitive( val ) )
         return val;
+    if ( val.includes( 'undefined' ) )
+        return undefined;
+
     try
     {
         return JSON.parse( val );
     }
     catch ( e ) // If parse throws an error that means val is a proper string 'a' vs 'true' or '2', that's still a valid value
     {
+
         return val;
     }
 }
@@ -151,6 +159,9 @@ function parseAssertion( evalFunction, value )
  */
 export function testWrap( func )
 {
+    if ( typeof func !== 'function' )
+        func = () => func
+
     // This is an example of what we can do since we are wrapping the function.
     // Like a spy this will let us keep track of how many times the function has been called.
     func.called = [];
@@ -158,8 +169,10 @@ export function testWrap( func )
         func.called = [];
     };
 
+    if ( process.env.NODE_ENV === "test" )
+        func.isProxy = 'testWrap';
+
     return new Proxy( func, {
-        ...( process.env.NODE_ENV === "test" && { isProxy: 'testWrap' } ),
         apply( target, thisArg, args ) { // trap for a function call. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/handler/apply
             target.called.push( args );
             let expected;
@@ -173,7 +186,7 @@ export function testWrap( func )
                     throw e;
                 } );
             }
-console.log('target', target( ...args ) );
+
             return wrapExpresProxy( expected );
         }
     } );
@@ -193,8 +206,11 @@ console.log('target', target( ...args ) );
  */
 export function wrapExpresProxy( _ex ) {
     const func = () => _ex;
-    return new Proxy( func, {
-        ...( process.env.NODE_ENV === "test" && { isProxy: 'wrapExpresProxy' } ),
+
+    if ( process.env.NODE_ENV === "test" )
+        func.isProxy = 'wrapExpresProxy';
+
+    const proxiedExpress = new Proxy( func, {
         get( _, name ) // Directly access the normal `expect` assertion API
         {
             return _ex[ name ];
@@ -239,8 +255,11 @@ export function wrapExpresProxy( _ex ) {
             parsePrimitive( expectationValue ) === undefined
                 ? evaluationFunc()
                 : evaluationFunc( parsePrimitive( expectationValue ) );
+
+            return proxiedExpress;
         }
     } );
+    return proxiedExpress;
 }
 
 
